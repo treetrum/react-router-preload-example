@@ -1,11 +1,12 @@
-import React from "react";
-import client from "./client";
+import React, { useContext } from "react";
+import client from "../client";
 import gql from "graphql-tag";
 import Helmet from "react-helmet";
 import NotFound from "./NotFound";
+import { Context } from "../store";
 
 const Page = () => {
-    const { page } = window.pageData;
+    const { page } = useContext(Context).state;
     if (!page) {
         return <NotFound></NotFound>;
     }
@@ -20,7 +21,7 @@ const Page = () => {
     );
 };
 
-Page.preload = () => {
+Page.preload = ({ passed }) => {
     const query = gql`
         query PageByPath($pagePath: ID!) {
             page(id: $pagePath, idType: URI) {
@@ -36,7 +37,7 @@ Page.preload = () => {
             client
         })
         .then(({ data }) => {
-            window.pageData = data;
+            passed.setState({ page: data.page });
         });
 };
 

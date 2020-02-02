@@ -1,8 +1,8 @@
-import React from "react";
+import React, { Component } from "react";
 import { withRouter, Route } from "react-router-dom";
 import { matchRoutes } from "react-router-config";
 
-class PendingNavDataLoader extends React.Component {
+class PendingNavDataLoader extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -48,7 +48,11 @@ class PendingNavDataLoader extends React.Component {
         );
         const promises = found.map(({ route, match }) => {
             if (route.component.preload) {
-                return route.component.preload(this.props.location, match);
+                return route.component.preload({
+                    match,
+                    location: this.props.location,
+                    passed: this.props.passToPreload
+                });
             } else {
                 return Promise.resolve();
             }

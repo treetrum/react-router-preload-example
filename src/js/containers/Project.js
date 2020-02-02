@@ -1,10 +1,11 @@
-import React from "react";
-import client from "./client";
+import React, { useContext } from "react";
+import client from "../client";
 import gql from "graphql-tag";
 import Helmet from "react-helmet";
+import { Context } from "../store";
 
 const Project = () => {
-    const { project } = window.pageData;
+    const { project } = useContext(Context).state;
     return (
         <div className="page">
             <Helmet>
@@ -16,7 +17,7 @@ const Project = () => {
     );
 };
 
-Project.preload = (location, match) => {
+Project.preload = ({ match, passed: { setState } }) => {
     const query = gql`
         query ProjectByPath($path: ID!) {
             project(id: $path, idType: SLUG) {
@@ -32,7 +33,7 @@ Project.preload = (location, match) => {
             client
         })
         .then(({ data }) => {
-            window.pageData = data;
+            setState({ project: data.project });
         });
 };
 

@@ -3,81 +3,126 @@ import React, { useState } from "react";
 import { BrowserRouter as Router, Link } from "react-router-dom";
 import { renderRoutes } from "react-router-config";
 import Helmet from "react-helmet";
-
-import DataFetcher from "./DataFetcher";
-import routes from "./routes";
-
 import NProgress from "nprogress";
 import gql from "graphql-tag";
-NProgress.configure({ minimum: 0.3 });
-
 import { useQuery, ApolloProvider } from "react-apollo";
 
+import { Context, AppStore } from "./store";
+import routes from "./routes";
 import client from "./client";
+import DataFetcher from "./DataFetcher";
 
-const query = gql`
-    query globalQuery {
-        generalSettings {
-            description
-            title
-            url
+const AppInner = ({ setInnerLoading }) => {
+    const { loading, data } = useQuery(gql`
+        query navQuery {
+            generalSettings {
+                description
+                title
+                url
+            }
+            sjdcoOptions {
+                siteOptions {
+                    menuLinks {
+                        link {
+                            type
+                            customLink {
+                                link
+                                newTab
+                                title
+                            }
+                            page {
+                                target
+                                title
+                                url
+                            }
+                        }
+                    }
+                }
+            }
         }
-    }
-`;
+    `);
 
-const Global = () => {
-    const { loading, data } = useQuery(query);
+    setInnerLoading(loading);
+
     if (loading) return null;
+
+    const navLinks = data.sjdcoOptions.siteOptions.menuLinks.map(
+        ({ link }) => link
+    );
+
+    const global = data.generalSettings;
+
     return (
-        <Helmet
-            defaultTitle={data.generalSettings.title}
-            titleTemplate={`%s - ${data.generalSettings.title}`}
-        ></Helmet>
+        <>
+            <Helmet
+                defaultTitle={global.title}
+                titleTemplate={`%s - ${global.title}`}
+            ></Helmet>
+            <nav>
+                {navLinks.map((link, index) => {
+                    if (link.type === "custom") {
+                        return (
+                            <li key={index}>
+                                <a
+                                    href={link.customLink.link}
+                                    target={
+                                        link.customLink.newTab ? "_blank" : null
+                                    }
+                                >
+                                    {link.customLink.title}
+                                </a>
+                            </li>
+                        );
+                    } else {
+                        return (
+                            <li key={index}>
+                                <Link
+                                    to={link.page.url}
+                                    target={link.page.target}
+                                >
+                                    {link.page.title}
+                                </Link>
+                            </li>
+                        );
+                    }
+                })}
+            </nav>
+            {renderRoutes(routes)}
+        </>
     );
 };
 
-const App = () => {
-    const [error, setError] = useState(null);
+const AppOuter = () => {
+    const [innerLoading, setInnerLoading] = useState(true);
 
-    const handleLoadingStateChange = ({ loading, error }) => {
-        if (loading) {
+    const handleLoadingStateChange = ({ loading } = {}) => {
+        if (loading || innerLoading) {
             NProgress.start();
         } else {
             NProgress.done();
         }
-        if (error) {
-            setError(error);
-        }
     };
 
+    React.useEffect(handleLoadingStateChange, [innerLoading]);
+
     return (
-        <ApolloProvider client={client}>
-            <Router>
-                {error ? <p>Error</p> : null}
-                <Global></Global>
-                <DataFetcher
-                    routes={routes}
-                    onLoadingStateChange={handleLoadingStateChange}
-                >
-                    <nav>
-                        <li>
-                            <Link to="/">Home</Link>
-                        </li>
-                        <li>
-                            <Link to="/contact">Contact</Link>
-                            <ul>
-                                <li>
-                                    <Link to="/contact/contact-subchild">
-                                        Contact subchild
-                                    </Link>
-                                </li>
-                            </ul>
-                        </li>
-                    </nav>
-                    {renderRoutes(routes)}
-                </DataFetcher>
-            </Router>
-        </ApolloProvider>
+        <AppStore>
+            <Context.Consumer>
+                {contextValue => (
+                    <ApolloProvider client={client}>
+                        <Router>
+                            <DataFetcher
+                                routes={routes}
+                                onLoadingStateChange={handleLoadingStateChange}
+                                passToPreload={contextValue}
+                            >
+                                <AppInner setInnerLoading={setInnerLoading} />
+                            </DataFetcher>
+                        </Router>
+                    </ApolloProvider>
+                )}
+            </Context.Consumer>
+        </AppStore>
     );
 };
-ReactDOM.render(<App></App>, document.getElementById("app"));
+ReactDOM.render(<AppOuter></AppOuter>, document.getElementById("app"));

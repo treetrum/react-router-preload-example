@@ -1,11 +1,13 @@
-import React from "react";
-import client from "./client";
+import React, { useContext } from "react";
+import client from "../client";
 import gql from "graphql-tag";
 import { Link } from "react-router-dom";
+import { Context } from "../store";
 
 const Home = () => {
-    const { page } = window.pageData;
-    const projects = window.pageData.projects.edges.map(({ node }) => node);
+    const state = useContext(Context).state;
+    const { page } = state;
+    const projects = state.projects.edges.map(({ node }) => node);
     return (
         <div className="app">
             <h1>{page.title}</h1>
@@ -25,7 +27,7 @@ const Home = () => {
     );
 };
 
-Home.preload = () => {
+Home.preload = ({ passed: { setState } }) => {
     const query = gql`
         query getPageData {
             page(id: "/home", idType: URI) {
@@ -45,7 +47,7 @@ Home.preload = () => {
         }
     `;
     return client.query({ query, client }).then(({ data }) => {
-        window.pageData = data;
+        setState({ page: data.page, projects: data.projects });
     });
 };
 
