@@ -7,10 +7,10 @@ import NProgress from "nprogress";
 import gql from "graphql-tag";
 import { useQuery, ApolloProvider } from "react-apollo";
 
-import { Context, AppStore } from "./store";
-import routes from "./routes";
+import DataFetcher from "./utils/DataFetcher";
+import { Context, AppStore } from "./AppStore";
+import routes from "./routes/index.js";
 import client from "./client";
-import DataFetcher from "./DataFetcher";
 
 const AppInner = ({ setInnerLoading }) => {
     const { loading, data } = useQuery(gql`

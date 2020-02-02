@@ -1,7 +1,7 @@
-import Home from "./containers/Home";
-import NotFound from "./containers/NotFound";
-import Page from "./containers/Page";
-import Project from "./containers/Project";
+import Home from "./Home";
+import NotFound from "./NotFound";
+import Page from "./Page";
+import Project from "./Project";
 
 const routes = [
     {

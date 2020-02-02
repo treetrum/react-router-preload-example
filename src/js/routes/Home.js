@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import client from "../client";
 import gql from "graphql-tag";
 import { Link } from "react-router-dom";
-import { Context } from "../store";
+import { Context } from "../AppStore";
 
 const Home = () => {
     const state = useContext(Context).state;

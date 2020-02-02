@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import client from "../client";
 import gql from "graphql-tag";
 import Helmet from "react-helmet";
-import { Context } from "../store";
+import { Context } from "../AppStore";
 
 const Project = () => {
     const { project } = useContext(Context).state;

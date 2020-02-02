@@ -3,7 +3,7 @@ import client from "../client";
 import gql from "graphql-tag";
 import Helmet from "react-helmet";
 import NotFound from "./NotFound";
-import { Context } from "../store";
+import { Context } from "../AppStore";
 
 const Page = () => {
     const { page } = useContext(Context).state;
